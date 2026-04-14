@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(34, 197, 94, 0.18);
+}
+.input {
+  @apply w-full px-4 py-3 rounded-xl border border-zinc-200 outline-none transition focus:border-green-400;
+}
+
+.btn-primary {
+  @apply px-5 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition;
+}
+
+.btn-outline {
+  @apply px-5 py-3 border rounded-xl font-semibold hover:bg-zinc-100;
+}
