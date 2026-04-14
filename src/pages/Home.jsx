@@ -253,12 +253,23 @@ export default function Home() {
   });
 
   const [email, setEmail] = useState("");
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
 
-  const [activeHero, setActiveHero] = useState({
-    image: heroMainDefault,
-    title: "Predator Elite",
-    subtitle: "Featured product",
-  });
+  const heroSlides = useMemo(
+    () => [
+      {
+        id: "main",
+        label: "Featured",
+        image: heroMainDefault,
+        title: "Predator Elite",
+        subtitle: "Featured product",
+      },
+      ...heroChoices,
+    ],
+    []
+  );
+
+  const activeHero = heroSlides[activeHeroIndex];
 
   useEffect(() => {
     if (!toast.open) return;
@@ -269,6 +280,14 @@ export default function Home() {
 
     return () => clearTimeout(timer);
   }, [toast.open]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveHeroIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [heroSlides.length]);
 
   const stats = useMemo(
     () => [
@@ -313,7 +332,6 @@ export default function Home() {
       />
 
       <main className="bg-slate-50 text-slate-900">
-        {/* Hero */}
         <section className="px-4 pb-8 pt-8 sm:pt-10">
           <div className="mx-auto grid max-w-7xl gap-7 xl:grid-cols-[1.08fr_0.92fr]">
             <article className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-sm md:p-12">
@@ -384,7 +402,7 @@ export default function Home() {
                   <div className="hidden rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700 md:block">
                     <div className="inline-flex items-center gap-2 text-sm font-bold">
                       <Zap className="h-4 w-4" />
-                      Interactive preview
+                      Auto preview
                     </div>
                   </div>
                 </div>
@@ -395,6 +413,7 @@ export default function Home() {
                   <div className="absolute -right-8 bottom-8 h-36 w-36 rounded-full bg-lime-200/40 blur-2xl" />
 
                   <LazyImage
+                    key={activeHero.image}
                     src={activeHero.image}
                     alt={activeHero.title}
                     eager
@@ -403,21 +422,15 @@ export default function Home() {
                   />
                 </div>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  {heroChoices.map((item) => {
-                    const isActive = activeHero.image === item.image;
+                <div className="mt-5 grid gap-3 sm:grid-cols-4">
+                  {heroSlides.map((item, index) => {
+                    const isActive = activeHeroIndex === index;
 
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() =>
-                          setActiveHero({
-                            image: item.image,
-                            title: item.title,
-                            subtitle: item.label,
-                          })
-                        }
+                        onClick={() => setActiveHeroIndex(index)}
                         className={`group rounded-[20px] border p-3 text-left transition-all duration-300 ${
                           isActive
                             ? "border-emerald-400 bg-emerald-50 shadow-md"
@@ -441,7 +454,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Trust strip */}
         <section className="px-4 pb-4">
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2 xl:grid-cols-4">
@@ -468,7 +480,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Catalog preview */}
         <section className="px-4 py-8">
           <div className="mx-auto max-w-7xl">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
@@ -495,17 +506,19 @@ export default function Home() {
               {featuredProducts.map((product) => (
                 <article
                   key={product.id}
-                  className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+                  className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]"
                 >
-                  <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 p-6">
+                  <div className="relative flex min-h-[255px] items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 p-6">
                     <span className="absolute left-4 top-4 rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white">
                       {product.badge}
                     </span>
 
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.08),_transparent_60%)] opacity-0 transition duration-300 group-hover:opacity-100" />
+
                     <LazyImage
                       src={product.image}
                       alt={product.name}
-                      className="h-[190px] w-full max-w-[220px] object-contain transition duration-300 group-hover:scale-105"
+                      className="relative z-10 h-[190px] w-full max-w-[220px] object-contain transition duration-500 group-hover:scale-110 group-hover:-rotate-2"
                     />
                   </div>
 
@@ -525,10 +538,14 @@ export default function Home() {
 
                     <Rating value={product.rating} />
 
-                    <div className="mt-auto pt-2">
+                    <div className="mt-auto flex items-center justify-between gap-3 pt-2">
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                        Premium catalog
+                      </span>
+
                       <Link
                         to="/products"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-emerald-700"
                       >
                         See in Catalog
                         <ArrowRight className="h-4 w-4" />
@@ -541,7 +558,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Brands */}
         <section className="px-4 pb-8 pt-3">
           <div className="mx-auto max-w-7xl">
             <div className="mb-6">
@@ -568,7 +584,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Value props */}
         <section className="px-4 py-8">
           <div className="mx-auto max-w-7xl">
             <div className="mb-6">
@@ -609,7 +624,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA */}
         <section className="px-4 pb-12 pt-2">
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-6 rounded-[30px] bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-8 text-white shadow-xl lg:grid-cols-[1.1fr_0.9fr] lg:p-10">

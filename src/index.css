@@ -28,3 +28,20 @@ body {
 .btn-outline {
   @apply px-5 py-3 border rounded-xl font-semibold hover:bg-zinc-100;
 }
+.modal-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}

@@ -14,6 +14,7 @@ import {
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/products", label: "Products" },
+  { to: "/cart", label: "Cart" },
   { to: "/checkout", label: "Checkout" },
   { to: "/contact", label: "Contact" },
 ];

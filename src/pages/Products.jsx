@@ -10,6 +10,7 @@ import {
   X,
   Check,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 
@@ -70,12 +71,18 @@ function Toast({ open, type, title, message, onClose }) {
 
   return (
     <div
-      className={`fixed right-3 top-24 z-[100] w-[calc(100%-24px)] max-w-sm rounded-2xl border p-4 text-white shadow-2xl backdrop-blur transition-all duration-300 sm:right-5 ${
+      className={`fixed right-3 top-24 z-[300] w-[calc(100%-24px)] max-w-sm rounded-2xl border p-4 text-white shadow-2xl backdrop-blur transition-all duration-300 sm:right-5 ${
         ui.wrap
-      } ${open ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}
+      } ${
+        open
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none -translate-y-2 opacity-0"
+      }`}
     >
       <div className="flex items-start gap-3">
-        <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${ui.iconWrap}`}>
+        <div
+          className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${ui.iconWrap}`}
+        >
           <Icon className="h-5 w-5" />
         </div>
 
@@ -97,58 +104,16 @@ function Toast({ open, type, title, message, onClose }) {
   );
 }
 
-function addToCartStorage(product) {
-  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-  const existing = cart.find((item) => item.id === product.id);
-
-  if (product.stock <= 0) {
-    return {
-      ok: false,
-      type: "warning",
-      message: `${product.name} is currently out of stock.`,
-    };
-  }
-
-  if (existing) {
-    if (existing.qty >= product.stock) {
-      return {
-        ok: false,
-        type: "warning",
-        message: `Only ${product.stock} unit(s) available for ${product.name}.`,
-      };
-    }
-
-    existing.qty += 1;
-    localStorage.setItem("cart", JSON.stringify(cart));
-    window.dispatchEvent(new Event("cart-updated"));
-
-    return {
-      ok: true,
-      type: "success",
-      message: `${product.name} quantity increased in your cart.`,
-    };
-  }
-
-  cart.push({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    image: product.image,
-    qty: 1,
-    stock: product.stock,
-    badge: product.badge,
-    rating: product.rating,
-    description: product.description,
-  });
-
-  localStorage.setItem("cart", JSON.stringify(cart));
-  window.dispatchEvent(new Event("cart-updated"));
-
-  return {
-    ok: true,
-    type: "success",
-    message: `${product.name} has been added to your cart.`,
-  };
+function HeroPreviewCard({ icon: Icon, title, text }) {
+  return (
+    <article className="rounded-[20px] border border-white/10 bg-white/10 p-4 backdrop-blur">
+      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-emerald-200">
+        <Icon className="h-5 w-5" />
+      </div>
+      <strong className="block text-sm font-bold text-white">{title}</strong>
+      <p className="mt-1 text-sm leading-6 text-white/70">{text}</p>
+    </article>
+  );
 }
 
 const products = [
@@ -353,7 +318,7 @@ export default function Products() {
 
     const timer = setTimeout(() => {
       setToast((prev) => ({ ...prev, open: false }));
-    }, 2600);
+    }, 2400);
 
     return () => clearTimeout(timer);
   }, [toast.open]);
@@ -368,19 +333,19 @@ export default function Products() {
   };
 
   const handleAddToCart = (product) => {
-  const result = addToCart(product);
+    const result = addToCart(product);
 
-  if (!result.ok) {
-    showToast("warning", "Stock limit reached", result.message);
-    return;
-  }
+    if (!result.ok) {
+      showToast("warning", "Stock limit reached", result.message);
+      return;
+    }
 
-  showToast(
-    "success",
-    result.type === "updated" ? "Quantity updated" : "Added to cart",
-    result.message
-  );
-};
+    showToast(
+      "success",
+      result.type === "updated" ? "Quantity updated" : "Added to cart",
+      result.message
+    );
+  };
 
   const goToPage = (page) => {
     setCurrentPage(page);
@@ -403,24 +368,24 @@ export default function Products() {
       />
 
       <main className="bg-slate-50 text-slate-900">
-        <section className="px-4 pb-5 pt-8">
+        <section className="px-4 pb-6 pt-8 sm:pt-10">
           <div className="mx-auto max-w-7xl">
-            <div className="grid gap-6 rounded-[28px] bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white shadow-xl xl:grid-cols-[1.15fr_0.85fr]">
-              <article>
+            <div className="grid gap-6 overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6 text-white shadow-xl lg:grid-cols-[1.08fr_0.92fr] lg:p-8">
+              <article className="flex flex-col justify-center">
                 <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-2 text-sm font-bold text-emerald-200">
                   <Layers3 className="h-4 w-4" />
                   Full product catalog
                 </div>
 
-                <h1 className="mt-5 max-w-[12ch] text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] md:text-5xl">
+                <h1 className="mt-5 max-w-[13ch] text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] md:text-5xl">
                   Find the right football boot for your role and playing style.
                 </h1>
 
                 <p className="mt-5 max-w-3xl text-base leading-7 text-white/75">
                   Explore our curated collection of performance footwear built
                   for control, speed, stability, and match-day confidence. Each
-                  product is presented with clear stock visibility and
-                  streamlined add-to-cart actions.
+                  product is presented with clear stock visibility and cleaner
+                  product interaction on every screen size.
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -437,31 +402,54 @@ export default function Products() {
                     Fast delivery
                   </span>
                 </div>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <HeroPreviewCard
+                    icon={Sparkles}
+                    title="Premium selection"
+                    text="Curated models for different positions and playing styles."
+                  />
+                  <HeroPreviewCard
+                    icon={ShieldCheck}
+                    title="Safer purchase flow"
+                    text="Stock-aware actions and cleaner browsing reduce friction."
+                  />
+                  <HeroPreviewCard
+                    icon={Truck}
+                    title="Fast product access"
+                    text="Responsive layout built to browse faster on mobile and desktop."
+                  />
+                </div>
               </article>
 
-              <aside className="flex min-h-[280px] items-center justify-center">
-                <img
-                  src={heroImage}
-                  alt="Featured football shoe"
-                  loading="eager"
-                  className="w-full max-w-[380px] rotate-[-4deg] object-contain drop-shadow-[0_18px_40px_rgba(0,0,0,0.28)]"
-                />
+              <aside className="flex items-center justify-center">
+                <div className="relative w-full max-w-[460px] overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-4 shadow-[0_20px_55px_rgba(0,0,0,0.25)] backdrop-blur">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(16,185,129,0.10),_transparent_60%)]" />
+                  <div className="absolute -left-8 top-6 h-28 w-28 rounded-full bg-emerald-300/10 blur-3xl" />
+                  <div className="absolute -right-6 bottom-6 h-32 w-32 rounded-full bg-cyan-300/10 blur-3xl" />
+
+                  <img
+                    src={heroImage}
+                    alt="Featured football shoe"
+                    loading="eager"
+                    className="relative z-10 mx-auto w-full max-w-[360px] rotate-[-4deg] object-contain drop-shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
+                  />
+                </div>
               </aside>
             </div>
           </div>
         </section>
 
-        <section className="px-4 pb-12 pt-4">
+        <section className="px-4 pb-14 pt-2">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
+            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-3xl font-extrabold tracking-tight text-slate-950">
                   Product Collection
                 </h2>
                 <p className="mt-2 max-w-3xl text-slate-500">
-                  Browse the available models and add them to cart with a
-                  smoother, company-style interface designed for clarity and
-                  mobile responsiveness.
+                  Browse the available models and interact with the catalog
+                  through a cleaner, more flexible, and more responsive layout.
                 </p>
               </div>
 
@@ -475,7 +463,7 @@ export default function Products() {
               </div>
             </div>
 
-            <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
               {currentProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -485,43 +473,49 @@ export default function Products() {
               ))}
             </section>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
 
-              {Array.from({ length: totalPages }).map((_, index) => {
-                const page = index + 1;
+                {Array.from({ length: totalPages }).map((_, index) => {
+                  const page = index + 1;
 
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => goToPage(page)}
-                    className={`min-h-11 min-w-11 rounded-xl border px-4 py-2 text-sm font-bold shadow-sm transition ${
-                      page === currentPage
-                        ? "border-cyan-600 bg-cyan-600 text-white"
-                        : "border-slate-200 bg-white text-slate-900 hover:-translate-y-0.5 hover:bg-slate-50"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => goToPage(page)}
+                      className={`min-h-11 min-w-11 rounded-xl border px-4 py-2 text-sm font-bold shadow-sm transition ${
+                        page === currentPage
+                          ? "border-cyan-600 bg-cyan-600 text-white"
+                          : "border-slate-200 bg-white text-slate-900 hover:-translate-y-0.5 hover:bg-slate-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
 
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="text-sm text-slate-500">
+                Page {currentPage} of {totalPages}
+              </p>
             </div>
           </div>
         </section>
