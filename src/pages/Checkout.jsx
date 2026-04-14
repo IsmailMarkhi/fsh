@@ -17,6 +17,25 @@ import {
 } from "lucide-react";
 import { getCart, clearCartStorage, getCartTotal } from "../lib/cartStorage";
 
+import { loadStripe } from "@stripe/stripe-js";
+/*
+const stripePromise = loadStripe("pk_test_51R4n5gDcad9rUnxVUaJ9XcLBVOGZdqU6R7cQQuElCmKqw7fM7HHYc4rrA7J1lpegNSs1V8aqB2skp631Gv92vYCB00G6TxHnaW");
+
+async function handleCheckout(cart) {
+  const res = await fetch("http://localhost:3000/create-checkout-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ cart }),
+  });
+
+  const data = await res.json();
+
+  window.location.href = data.url;
+}
+*/
+
 function PageSeo({ title, description }) {
   useEffect(() => {
     document.title = title;
