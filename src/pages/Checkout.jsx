@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Lock,
@@ -15,26 +15,11 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
+import {
+  PayPalScriptProvider,
+  PayPalButtons,
+} from "@paypal/react-paypal-js";
 import { getCart, clearCartStorage, getCartTotal } from "../lib/cartStorage";
-
-import { loadStripe } from "@stripe/stripe-js";
-/*
-const stripePromise = loadStripe("pk_test_51R4n5gDcad9rUnxVUaJ9XcLBVOGZdqU6R7cQQuElCmKqw7fM7HHYc4rrA7J1lpegNSs1V8aqB2skp631Gv92vYCB00G6TxHnaW");
-
-async function handleCheckout(cart) {
-  const res = await fetch("http://localhost:3000/create-checkout-session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ cart }),
-  });
-
-  const data = await res.json();
-
-  window.location.href = data.url;
-}
-*/
 
 function PageSeo({ title, description }) {
   useEffect(() => {
@@ -126,6 +111,117 @@ function CheckoutItem({ item }) {
   );
 }
 
+function PayPalCheckoutBlock({
+  total,
+  cart,
+  setIsPaying,
+  setNotice,
+  onPaymentSuccess,
+}) {
+  const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+
+  if (!clientId) {
+    return (
+      <Notice
+        notice={{
+          show: true,
+          type: "error",
+          title: "Missing PayPal Client ID",
+          message:
+            "Add VITE_PAYPAL_CLIENT_ID to your .env file and restart the dev server.",
+        }}
+      />
+    );
+  }
+
+  return (
+    <PayPalScriptProvider
+      options={{
+        "client-id": clientId,
+        currency: "USD",
+        intent: "capture",
+        components: "buttons",
+      }}
+    >
+      <PayPalButtons
+        style={{
+          layout: "vertical",
+          shape: "rect",
+          label: "paypal",
+          tagline: false,
+        }}
+        disabled={!cart.length || total <= 0}
+        forceReRender={[total, cart.length]}
+        createOrder={(data, actions) => {
+          return actions.order.create({
+            purchase_units: [
+              {
+                amount: {
+                  currency_code: "USD",
+                  value: total.toFixed(2),
+                },
+                description: "FeatureShoes order",
+              },
+            ],
+          });
+        }}
+        onClick={() => {
+          setNotice((prev) =>
+            prev.type === "error" || prev.type === "warning"
+              ? { ...prev, show: false }
+              : prev
+          );
+        }}
+        onApprove={async (data, actions) => {
+          setIsPaying(true);
+
+          try {
+            const details = await actions.order.capture();
+            const payerName = details?.payer?.name?.given_name || "customer";
+
+            setNotice({
+              show: true,
+              type: "success",
+              title: "Payment completed",
+              message: `Payment completed successfully by ${payerName}. Your order has been confirmed.`,
+            });
+
+            onPaymentSuccess();
+          } catch (error) {
+            setNotice({
+              show: true,
+              type: "error",
+              title: "Payment error",
+              message:
+                "An unexpected problem happened while confirming payment. Please try again.",
+            });
+          } finally {
+            setIsPaying(false);
+          }
+        }}
+        onError={() => {
+          setNotice({
+            show: true,
+            type: "error",
+            title: "Payment failed",
+            message: "Something went wrong during payment. Please try again.",
+          });
+          setIsPaying(false);
+        }}
+        onCancel={() => {
+          setNotice({
+            show: true,
+            type: "warning",
+            title: "Payment canceled",
+            message: "The payment process was canceled before completion.",
+          });
+          setIsPaying(false);
+        }}
+      />
+    </PayPalScriptProvider>
+  );
+}
+
 export default function Checkout() {
   const navigate = useNavigate();
 
@@ -137,10 +233,6 @@ export default function Checkout() {
     title: "Payment successful",
     message: "Your order is being finalized and submitted.",
   });
-
-  const paypalRef = useRef(null);
-  const paypalRendered = useRef(false);
-  const paypalScriptLoading = useRef(false);
 
   const refreshCart = () => {
     setCart(getCart());
@@ -166,7 +258,6 @@ export default function Checkout() {
         message:
           "Your cart is currently empty. Add products first, then return to this page.",
       });
-      paypalRendered.current = false;
       return;
     }
 
@@ -183,117 +274,14 @@ export default function Checkout() {
     return cart.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
   }, [cart]);
 
-  useEffect(() => {
-    if (!cart.length) return;
-    if (!paypalRef.current) return;
-    if (paypalRendered.current) return;
+  const handlePaymentSuccess = () => {
+    clearCartStorage();
+    setCart([]);
 
-    const renderButtons = () => {
-      if (!window.paypal || !paypalRef.current || paypalRendered.current) return;
-
-      paypalRendered.current = true;
-
-      window.paypal
-        .Buttons({
-          style: {
-            layout: "vertical",
-            shape: "rect",
-            label: "paypal",
-          },
-
-          createOrder: (_, actions) => {
-            return actions.order.create({
-              purchase_units: [
-                {
-                  amount: {
-                    value: total.toFixed(2),
-                  },
-                },
-              ],
-            });
-          },
-
-          onApprove: async (_, actions) => {
-            setIsPaying(true);
-
-            try {
-              const details = await actions.order.capture();
-              const payerName = details?.payer?.name?.given_name || "customer";
-
-              setNotice({
-                show: true,
-                type: "success",
-                title: "Payment completed",
-                message: `Payment completed successfully by ${payerName}. Your order has been confirmed.`,
-              });
-
-              clearCartStorage();
-              setCart([]);
-
-              setTimeout(() => {
-                navigate("/");
-              }, 2200);
-            } catch (error) {
-              setNotice({
-                show: true,
-                type: "error",
-                title: "Payment error",
-                message:
-                  "An unexpected problem happened while confirming payment. Please try again.",
-              });
-            } finally {
-              setIsPaying(false);
-            }
-          },
-
-          onError: () => {
-            setNotice({
-              show: true,
-              type: "error",
-              title: "Payment failed",
-              message: "Something went wrong during payment. Please try again.",
-            });
-            setIsPaying(false);
-          },
-
-          onCancel: () => {
-            setNotice({
-              show: true,
-              type: "warning",
-              title: "Payment canceled",
-              message: "The payment process was canceled before completion.",
-            });
-            setIsPaying(false);
-          },
-        })
-        .render(paypalRef.current);
-    };
-
-    const existingScript = document.querySelector(
-      'script[data-paypal-sdk="featureshoes"]'
-    );
-
-    if (existingScript) {
-      if (window.paypal) {
-        renderButtons();
-      } else {
-        existingScript.addEventListener("load", renderButtons, { once: true });
-      }
-      return;
-    }
-
-    if (paypalScriptLoading.current) return;
-
-    paypalScriptLoading.current = true;
-
-    const script = document.createElement("script");
-    script.src =
-      "https://www.paypal.com/sdk/js?client-id=AeoIhVygg98cjsRo0SIYmRM4k8f57xecJgyLfhGPxcTb6PTgMCNYzYeZQ3Rnk-lNsTbcDSHWDS9Sd782&currency=USD";
-    script.async = true;
-    script.dataset.paypalSdk = "featureshoes";
-    script.onload = renderButtons;
-    document.body.appendChild(script);
-  }, [cart, total, navigate]);
+    setTimeout(() => {
+      navigate("/");
+    }, 2200);
+  };
 
   return (
     <>
