@@ -15,10 +15,7 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
-import {
-  PayPalScriptProvider,
-  PayPalButtons,
-} from "@paypal/react-paypal-js";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { getCart, clearCartStorage, getCartTotal } from "../lib/cartStorage";
 
 function PageSeo({ title, description }) {
@@ -48,19 +45,21 @@ function Notice({ notice }) {
           Icon: CheckCircle2,
         }
       : notice.type === "error"
-      ? {
-          wrap: "border border-red-200 bg-red-50 text-red-700",
-          Icon: XCircle,
-        }
-      : {
-          wrap: "border border-amber-200 bg-amber-50 text-amber-700",
-          Icon: AlertTriangle,
-        };
+        ? {
+            wrap: "border border-red-200 bg-red-50 text-red-700",
+            Icon: XCircle,
+          }
+        : {
+            wrap: "border border-amber-200 bg-amber-50 text-amber-700",
+            Icon: AlertTriangle,
+          };
 
   const Icon = config.Icon;
 
   return (
-    <div className={`mb-5 flex items-start gap-3 rounded-[18px] p-4 ${config.wrap}`}>
+    <div
+      className={`mb-5 flex items-start gap-3 rounded-[18px] p-4 ${config.wrap}`}
+    >
       <div className="mt-0.5">
         <Icon className="h-5 w-5" />
       </div>
@@ -94,9 +93,7 @@ function CheckoutItem({ item }) {
             {item.name}
           </h4>
 
-          <p className="mt-1 text-sm text-slate-500">
-            Quantity: {safeQty}
-          </p>
+          <p className="mt-1 text-sm text-slate-500">Quantity: {safeQty}</p>
 
           <p className="text-sm text-slate-500">
             Unit price: ${safePrice.toFixed(2)}
@@ -169,7 +166,7 @@ function PayPalCheckoutBlock({
           setNotice((prev) =>
             prev.type === "error" || prev.type === "warning"
               ? { ...prev, show: false }
-              : prev
+              : prev,
           );
         }}
         onApprove={async (data, actions) => {
@@ -264,7 +261,7 @@ export default function Checkout() {
     setNotice((prev) =>
       prev.type === "warning" && prev.title === "No items to checkout"
         ? { ...prev, show: false }
-        : prev
+        : prev,
     );
   }, [cart]);
 
@@ -347,7 +344,9 @@ export default function Checkout() {
                     key={title}
                     className="rounded-[20px] border border-white/10 bg-white/10 p-5"
                   >
-                    <strong className="block text-base font-bold">{title}</strong>
+                    <strong className="block text-base font-bold">
+                      {title}
+                    </strong>
                     <p className="mt-1 text-sm text-white/75">{text}</p>
                   </article>
                 ))}
@@ -366,7 +365,8 @@ export default function Checkout() {
                       Checkout Summary
                     </h2>
                     <p className="mt-2 text-slate-500">
-                      Review your selected products before confirming the payment.
+                      Review your selected products before confirming the
+                      payment.
                     </p>
                   </div>
 
@@ -406,10 +406,7 @@ export default function Checkout() {
                     </div>
                   ) : (
                     cart.map((item, index) => (
-                      <CheckoutItem
-                        key={`${item.id}-${index}`}
-                        item={item}
-                      />
+                      <CheckoutItem key={`${item.id}-${index}`} item={item} />
                     ))
                   )}
                 </div>
@@ -481,7 +478,9 @@ export default function Checkout() {
                 <div className="mt-6 space-y-1">
                   <div className="flex items-center justify-between gap-4 py-2 text-sm text-slate-700">
                     <span>Items subtotal</span>
-                    <strong className="text-slate-950">${total.toFixed(2)}</strong>
+                    <strong className="text-slate-950">
+                      ${total.toFixed(2)}
+                    </strong>
                   </div>
 
                   <div className="flex items-center justify-between gap-4 py-2 text-sm text-slate-700">
@@ -545,7 +544,13 @@ export default function Checkout() {
                         </div>
                       )}
 
-                      <div ref={paypalRef} />
+                      <PayPalCheckoutBlock
+                        total={total}
+                        cart={cart}
+                        setIsPaying={setIsPaying}
+                        setNotice={setNotice}
+                        onPaymentSuccess={handlePaymentSuccess}
+                      />
                     </div>
                   </div>
                 )}
